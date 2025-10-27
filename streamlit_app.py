@@ -13,6 +13,16 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 import hashlib
+import nltk
+
+# Download required NLTK data resources at runtime
+nltk_data_packages = ['stopwords', 'punkt', 'wordnet']
+for package in nltk_data_packages:
+    try:
+        nltk.data.find(f'corpus/{package}')
+    except LookupError:
+        nltk.download(package)
+
 
 # Import utility functions
 try:
