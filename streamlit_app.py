@@ -15,13 +15,53 @@ import numpy as np
 import hashlib
 import nltk
 
-# Download required NLTK data resources at runtime
-nltk_data_packages = ['stopwords', 'punkt', 'wordnet']
-for package in nltk_data_packages:
+import streamlit as st
+import pandas as pd
+import time
+import io
+import sqlite3
+from datetime import datetime
+import matplotlib.pyplot as plt
+import seaborn as sns
+import numpy as np
+import hashlib
+import nltk
+
+# ========== CRITICAL: Download NLTK data FIRST ==========
+@st.cache_resource
+def download_nltk_data():
+    """Download NLTK data on first run"""
     try:
-        nltk.data.find(f'corpus/{package}')
+        nltk.data.find('tokenizers/punkt')
+        nltk.data.find('corpora/stopwords')
+        nltk.data.find('corpora/wordnet')
+        nltk.data.find('corpora/omw-1.4')
     except LookupError:
-        nltk.download(package)
+        with st.spinner('Downloading language data... (one-time setup)'):
+            nltk.download('punkt', quiet=True)
+            nltk.download('punkt_tab', quiet=True)
+            nltk.download('stopwords', quiet=True)
+            nltk.download('wordnet', quiet=True)
+            nltk.download('omw-1.4', quiet=True)
+            nltk.download('averaged_perceptron_tagger', quiet=True)
+            nltk.download('averaged_perceptron_tagger_eng', quiet=True)
+
+# Download NLTK data before imports
+download_nltk_data()
+
+# NOW import your utility functions
+try:
+    from utils.data_processing import clean_and_normalize_text, load_data_to_db, fetch_data_from_db
+    from utils.traditional_model import run_traditional_sentiment_analysis
+    from utils.llm_model import run_llm_sentiment_analysis
+    from utils.email_sender import send_email_with_attachment
+except ImportError as e:
+    st.error(f"Error importing utility modules: {e}")
+    st.info("Make sure all files in the utils/ folder are created correctly.")
+    st.stop()
+
+# Rest of your code...
+
 
 
 # Import utility functions
