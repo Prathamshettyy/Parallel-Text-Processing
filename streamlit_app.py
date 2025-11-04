@@ -1,8 +1,3 @@
-"""
-COMPLETE STREAMLIT APP - IMPROVED UI WITH CARD-BASED DESIGN
-Fixed login caption alignment and modern card-based welcome screen
-"""
-
 import streamlit as st
 import pandas as pd
 import time
@@ -60,7 +55,6 @@ except ImportError as e:
     st.info("Make sure all files in the utils/ folder are created correctly.")
     st.stop()
 
-# Rest of your code...
 
 
 
@@ -753,6 +747,10 @@ def main():
     
     st.markdown("<hr>", unsafe_allow_html=True)
     
+    # Define text_column and label_column with defaults BEFORE they are conditionally set
+    text_column = "review"
+    label_column = "sentiment"
+
     with st.sidebar:
         st.header("Configuration")
         
@@ -769,20 +767,43 @@ def main():
             st.success(f"✓ {uploaded_file.name}")
             file_size = len(uploaded_file.getvalue()) / 1024
             st.caption(f"{file_size:.2f} KB")
-            
+
             try:
-                if st.session_state.uploaded_df is None or st.button("Reload"):
-                    with st.spinner("Loading..."):
-                        st.session_state.uploaded_df = load_csv_file(uploaded_file)
-                        st.success(f"✓ {len(st.session_state.uploaded_df):,} rows")
+                # Load uploaded CSV into session state if not already loaded
+                if st.session_state.get('uploaded_df') is None:
+                    st.session_state.uploaded_df = load_csv_file(uploaded_file)
+
+                if st.session_state.uploaded_df is not None:
+                    st.markdown("<hr>", unsafe_allow_html=True)
+
+                    st.subheader("Processing Options")
+
+                    # GET ALL COLUMNS
+                    cols = st.session_state.uploaded_df.columns.tolist()
+
+                    # AUTO-DETECT BUT USER CAN CHANGE
+                    text_suggestions = [
+                        col for col in cols
+                        if any(kw in col.lower() for kw in ['text', 'review', 'comment', 'content', 'message', 'tweet', 'post'])
+                    ]
+                    label_suggestions = [
+                        col for col in cols
+                        if any(kw in col.lower() for kw in ['label', 'sentiment', 'rating', 'class', 'category', 'target'])
+                    ]
+
+                    text_col_idx = cols.index(text_suggestions[0]) if text_suggestions else 0
+                    label_col_idx = cols.index(label_suggestions[0]) if label_suggestions else (1 if len(cols) > 1 else 0)
+
+                    # USER CAN SELECT ANY COLUMN
+                    # IMPORTANT: These variables are now correctly assigned
+                    text_column = st.selectbox("Select Text Column", cols, index=text_col_idx, help="Column containing text data")
+                    label_column = st.selectbox("Select Label Column", cols, index=label_col_idx, help="Column containing sentiment labels")
+
             except Exception as e:
-                st.error(f"Error: {str(e)}")
+                st.error(f"Could not process uploaded file: {e}")
+                st.session_state.uploaded_df = None # Reset on error
         
-        st.markdown("<hr>", unsafe_allow_html=True)
-        
-        st.subheader("Processing Options")
-        text_column = st.text_input("Text Column", value="review")
-        label_column = st.text_input("Label Column", value="sentiment")
+        # These options are visible regardless, but only useful after upload
         sample_size = st.number_input("Sample Size", min_value=100, max_value=50000, value=1000, step=100)
         processing_method = st.radio("Method", options=["Both (Compare)", "Traditional Only", "LLM Only"])
         
@@ -975,15 +996,46 @@ def main():
                     trad_acc = st.session_state.traditional_results.get('accuracy', 0)
                     llm_acc = st.session_state.llm_results.get('accuracy', 0)
                     
+                    # ========== START: CORRECTED METRICS BLOCK (WITH NUMBERS) ==========
+                    # This block now has the correct color logic.
                     col1, col2, col3, col4 = st.columns(4)
+
+                    # --- SPEED METRICS ---
+                    # Lower is better, so use delta_color="inverse"
+                    # A negative delta (less time) will be GREEN (good)
+                    speed_delta = trad_time - llm_time
+                    
                     with col1:
-                        st.metric("Traditional", f"{trad_time:.2f}s", "Speed")
+                        st.metric("Traditional", 
+                                  f"{trad_time:.2f}s", 
+                                  delta=f"{speed_delta:.2f}s", 
+                                  delta_color="inverse")
+
                     with col2:
-                        st.metric("LLM", f"{llm_time:.2f}s", "Speed")
+                        st.metric("LLM", 
+                                  f"{llm_time:.2f}s", 
+                                  delta=f"{-speed_delta:.2f}s", 
+                                  delta_color="inverse")
+
+                    # --- ACCURACY METRICS ---
+                    # Higher is better, so use delta_color="normal"
+                    # A positive delta (more accuracy) will be GREEN
+                    acc_delta_val = (trad_acc - llm_acc)
+                    
                     with col3:
-                        st.metric("Traditional", f"{trad_acc:.2%}", "Accuracy")
+                        st.metric("Traditional", 
+                                  f"{trad_acc:.1%}", 
+                                  # Format delta as percentage
+                                  delta=f"{acc_delta_val * 100:.1f}%", 
+                                  delta_color="normal")
+
                     with col4:
-                        st.metric("LLM", f"{llm_acc:.2%}", "Accuracy")
+                        st.metric("LLM", 
+                                  f"{llm_acc:.1%}", 
+                                  # Flip the delta for comparison
+                                  delta=f"{-acc_delta_val * 100:.1f}%", 
+                                  delta_color="normal")
+                    # ========== END: CORRECTED METRICS BLOCK (WITH NUMBERS) ==========
                     
                     if label_column in results_df.columns:
                         fig = plot_comparison_chart(trad_time, llm_time, trad_acc, llm_acc)
@@ -1209,4 +1261,3 @@ if __name__ == "__main__":
         main()
     else:
         show_login_page()
-
