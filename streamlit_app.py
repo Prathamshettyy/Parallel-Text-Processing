@@ -1,3 +1,8 @@
+"""
+COMPLETE STREAMLIT APP - IMPROVED UI WITH CARD-BASED DESIGN
+Fixed login caption alignment and modern card-based welcome screen
+"""
+
 import streamlit as st
 import pandas as pd
 import time
@@ -9,6 +14,11 @@ import seaborn as sns
 import numpy as np
 import hashlib
 import nltk
+import os                 # <-- ADDED
+from dotenv import load_dotenv # <-- ADDED
+
+# Load environment variables from .env file
+load_dotenv()              # <-- ADDED
 
 import streamlit as st
 import pandas as pd
@@ -49,7 +59,7 @@ try:
     from utils.data_processing import clean_and_normalize_text, load_data_to_db, fetch_data_from_db
     from utils.traditional_model import run_traditional_sentiment_analysis
     from utils.llm_model import run_llm_sentiment_analysis
-    from utils.email_sender import send_email_with_attachment
+    from utils.email_sender import send_email_with_attachment # This function is now expected to read from .env
 except ImportError as e:
     st.error(f"Error importing utility modules: {e}")
     st.info("Make sure all files in the utils/ folder are created correctly.")
@@ -71,7 +81,7 @@ except ImportError as e:
 
 # Page configuration
 st.set_page_config(
-    page_title="Parallel Text Processing",
+    page_title="Parallel Text Processing",  # <-- UPDATED
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -682,7 +692,7 @@ Accuracy: LLM is {acc_diff:.2%} {'more' if acc_diff > 0 else 'less'} accurate
 
 # Login Page
 def show_login_page():
-    st.markdown('<h1 class="main-header">Parallel Text Processing</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">Parallel Text Processing</h1>', unsafe_allow_html=True) # <-- UPDATED
     st.markdown('<p class="stCaption">Advanced AI-Powered Text Analysis</p>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -739,10 +749,10 @@ def show_login_page():
 
 def main():
     if st.session_state.logged_in:
-        st.markdown('<h1 class="main-header">Parallel Text Processing</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 class="main-header">Parallel Text Processing</h1>', unsafe_allow_html=True) # <-- UPDATED
         st.markdown(f'<p class="stCaption">Welcome back, {st.session_state.user_name}</p>', unsafe_allow_html=True)
     else:
-        st.markdown('<h1 class="main-header">Parallel Text Processing</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 class="main-header">Parallel Text Processing</h1>', unsafe_allow_html=True) # <-- UPDATED
         st.markdown('<p class="stCaption">Advanced AI-Powered Sentiment Analysis</p>', unsafe_allow_html=True)
     
     st.markdown("<hr>", unsafe_allow_html=True)
@@ -813,22 +823,25 @@ def main():
         send_email = st.checkbox("Send via email")
         
         email_address = None
+        # We still need these for the smtp server connection, but not for user/pass
         smtp_server = st.session_state.smtp_config['server'] if st.session_state.logged_in else "smtp.gmail.com"
         smtp_port = st.session_state.smtp_config['port'] if st.session_state.logged_in else 587
-        sender_email = None
-        sender_password = None
         
+        # --- START: MODIFIED EMAIL BLOCK ---
         if send_email:
             if st.session_state.logged_in:
+                # Get recipient email from logged in user
                 email_address = st.session_state.user_email
-                st.info(f"To: {email_address}")
-                sender_email = st.text_input("SMTP Email", value=st.session_state.user_email)
-                sender_password = st.text_input("Password", type="password")
+                st.info(f"Results will be sent to: {email_address}")
             else:
-                email_address = st.text_input("Email")
-                sender_email = st.text_input("SMTP Email")
-                sender_password = st.text_input("Password", type="password")
-    
+                # Ask for recipient email if not logged in
+                email_address = st.text_input("Recipient Email", placeholder="your.email@example.com")
+            
+            # No longer need sender_email or sender_password inputs
+            # sender_email = st.text_input("SMTP Email", value=st.session_state.user_email)
+            # sender_password = st.text_input("Password", type="password")
+        # --- END: MODIFIED EMAIL BLOCK ---
+            
     if uploaded_file is not None and st.session_state.uploaded_df is not None:
         df = st.session_state.uploaded_df
         
@@ -1120,9 +1133,9 @@ def main():
                     if st.button("Send Email", use_container_width=True):
                         try:
                             with st.spinner("Sending..."):
+                                # --- START: MODIFIED EMAIL CALL ---
+                                # We no longer pass sender_email or sender_password
                                 send_email_with_attachment(
-                                    sender_email=sender_email,
-                                    sender_password=sender_password,
                                     recipient_email=email_address,
                                     subject="Sentiment Analysis Results",
                                     body=report,
@@ -1131,9 +1144,11 @@ def main():
                                     smtp_server=smtp_server,
                                     smtp_port=smtp_port
                                 )
+                                # --- END: MODIFIED EMAIL CALL ---
                             st.success(f"Sent to {email_address}")
                         except Exception as e:
                             st.error(f"Failed: {str(e)}")
+                            st.error("Please ensure APP_EMAIL_SENDER and APP_EMAIL_PASSWORD are set correctly in your .env file.")
             else:
                 st.info("Process data first")
     
