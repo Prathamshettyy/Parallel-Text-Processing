@@ -1,6 +1,3 @@
-# FIXED: utils/llm_model.py - GPU ENABLED + 2 classes only
-# Replace your utils/llm_model.py with this
-
 import time
 import torch
 import numpy as np

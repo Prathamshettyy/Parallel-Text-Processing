@@ -1,6 +1,3 @@
-# FIXED: utils/traditional_model.py - WITH MULTIPROCESSING + 2 classes only
-# Replace your utils/traditional_model.py with this
-
 import time
 import numpy as np
 from textblob import TextBlob
