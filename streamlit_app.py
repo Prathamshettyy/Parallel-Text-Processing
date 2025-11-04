@@ -71,7 +71,7 @@ except ImportError as e:
 
 # Page configuration
 st.set_page_config(
-    page_title="Sentiment Analysis Platform",
+    page_title="Parallel Text Processing",
     page_icon="🎯",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -682,7 +682,7 @@ Accuracy: LLM is {acc_diff:.2%} {'more' if acc_diff > 0 else 'less'} accurate
 
 # Login Page
 def show_login_page():
-    st.markdown('<h1 class="main-header">Sentiment Analysis Platform</h1>', unsafe_allow_html=True)
+    st.markdown('<h1 class="main-header">Parallel Text Processing</h1>', unsafe_allow_html=True)
     st.markdown('<p class="stCaption">Advanced AI-Powered Text Analysis</p>', unsafe_allow_html=True)
     
     col1, col2, col3 = st.columns([1, 2, 1])
@@ -739,10 +739,10 @@ def show_login_page():
 
 def main():
     if st.session_state.logged_in:
-        st.markdown('<h1 class="main-header">Sentiment Analysis Platform</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 class="main-header">Parallel Text Processing</h1>', unsafe_allow_html=True)
         st.markdown(f'<p class="stCaption">Welcome back, {st.session_state.user_name}</p>', unsafe_allow_html=True)
     else:
-        st.markdown('<h1 class="main-header">Sentiment Analysis Platform</h1>', unsafe_allow_html=True)
+        st.markdown('<h1 class="main-header">Parallel Text Processing</h1>', unsafe_allow_html=True)
         st.markdown('<p class="stCaption">Advanced AI-Powered Sentiment Analysis</p>', unsafe_allow_html=True)
     
     st.markdown("<hr>", unsafe_allow_html=True)
