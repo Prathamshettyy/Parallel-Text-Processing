@@ -148,3 +148,8 @@ The comparative analysis validates fundamental principles in machine learning:
 ## Conclusion
 
 Parallel Text Processing demonstrates that efficient sentiment analysis requires strategic algorithm selection. TextBlob excels in high-speed scenarios with 21.57 seconds for 1000 texts, while DistilBERT delivers superior accuracy at 80.5%. Organizations can optimize performance by selecting appropriate methods based on latency requirements, accuracy thresholds, and resource availability. The system's parallel architecture enables scalable deployment for both traditional and deep learning approaches across enterprise environments.
+
+## License
+This project is licensed under the MIT License – see the LICENSE file for details.
+
+
